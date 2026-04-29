@@ -1,7 +1,7 @@
 
-# SNC Workshops — May Onsite
+# Workshops — Onsite
 
-Three hands-on workshops for the Sierra Nevada Corporation team. Each workshop is a sequence of numbered Databricks notebooks that build on each other, generating synthetic data and walking through a complete pipeline.
+Three hands-on workshops for planned future on-sites. Each workshop is a sequence of numbered Databricks notebooks that build on each other, generating synthetic data and walking through a complete pipeline.
 
 Workshops 1 & 2 are Data Science focused (~90 min each). Workshop 3 is Data Engineering focused (~90 min), covering pipeline architecture and application integration. Workshop 3 is fully self-contained and does not depend on Workshops 1 & 2, so it works for a separate audience.
 
@@ -21,7 +21,7 @@ Unsupervised NLP pipeline that discovers risk categories in email data and produ
 | 03 | `lda_comparison` | 10 min | LDA with matching K for comparison. Soft probabilistic topic assignment, entropy analysis for multi-topic emails, pyLDAvis interactive visualization, NMF vs LDA cross-tabulation |
 | 04 | `embeddings_clustering` | 10 min | Sentence-transformer embeddings (all-MiniLM-L6-v2), UMAP dimensionality reduction, HDBSCAN clustering (`min_cluster_size=80, min_samples=15`), 3-panel UMAP comparison (HDBSCAN vs NMF vs ground truth), noise point analysis |
 | 05 | `risk_scoring` | 15 min | Composite risk score combining 5 signals (NMF topic 30%, embedding anomaly 30%, attachment/size 15%, temporal 15%, LDA entropy 10%). MLflow model registration, batch inference pattern, risk tier assignment |
-| 06 | `educational_supervised` | 5 min | **Educational only** — TF-IDF+XGBoost, DistilBERT fine-tuning (code shown but not run), zero-shot classification demo. SNC has no labeled data so this is future reference for when they do. |
+| 06 | `educational_supervised` | 5 min | **Educational only** — TF-IDF+XGBoost, DistilBERT fine-tuning (code shown but not run), zero-shot classification demo. Assume no labeled data so this is future reference for if they do. |
 
 ### Key Technical Choices
 
@@ -149,7 +149,7 @@ The `table_suffix` widget appears at the top of every notebook (except 00) with 
 
 ## Pre-Workshop Data Loading (Production)
 
-For the actual SNC onsite, real data replaces the synthetic generators:
+For the actual onsite, real data may replace the synthetic generators:
 
 | Data Source | Status | Action |
 |-------------|--------|--------|
