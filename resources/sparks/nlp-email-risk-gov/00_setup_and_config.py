@@ -125,62 +125,62 @@ random.seed(42)
 
 TEMPLATES = {
     "data_exfiltration": [
-        "Can you send me the {doc_type} to my personal email {personal_email}? I need to review it over the weekend and VPN is too slow.",
-        "I've uploaded the {doc_type} to {cloud_service}. Here's the link so you can access it from home.",
-        "Is there a way to copy the {doc_type} to a USB drive? The file is too large for email and I need it for the {event} presentation.",
-        "I forwarded the {doc_type} with the {data_type} data to my {personal_email} account. Easier to work from there.",
-        "Attached is the {doc_type} with all {data_type} records. Please download before I remove it from the shared drive.",
-        "I'm going to move the {data_type} files to my personal {cloud_service} tonight so I can work on the analysis from home.",
-        "Can you zip up the entire {doc_type} directory and send it to {personal_email}? Need the full dataset.",
-        "I exported all the {data_type} records to CSV — about 50k rows. Sending via {cloud_service} since email has a size limit.",
+        "{Can you send me|Could you send|Would you mind sending} the {doc_type} {to my personal email|over to|to} {personal_email}? {I need to review it over the weekend and VPN is too slow|Working from home tonight and the VPN keeps dropping|Want to look at it offline this weekend}.",
+        "{I've uploaded|I just uploaded|FYI I uploaded} the {doc_type} to {cloud_service}. {Here's the link so you can access it from home|Link below — grab it from home|Use this link to pull it down at home}.",
+        "{Is there a way to|Any way to|How do I} copy the {doc_type} to a USB drive? {The file is too large for email|It's too big to email|Email won't take a file this big} and I need it for the {event} presentation.",
+        "{I forwarded|I sent|I just forwarded} the {doc_type} with the {data_type} data to my {personal_email} {account|inbox|address}. {Easier to work from there|Faster to work on it from my own machine|I'll keep working on it from there}.",
+        "{Attached is|Attaching|Here's} the {doc_type} with all {data_type} records. {Please download before I remove it from the shared drive|Grab it before I take it off the shared drive|Pull it down before I delete it from the share}.",
+        "{I'm going to|Planning to|Tonight I'll} move the {data_type} files to my personal {cloud_service} {tonight|later today|this evening} so I can {work on the analysis from home|keep working from home|finish the analysis after hours}.",
+        "{Can you|Could you|Mind if you} zip up the entire {doc_type} directory and send it to {personal_email}? {Need the full dataset|I need everything|Want the whole thing}.",
+        "I exported all the {data_type} records to CSV — {about 50k rows|roughly 50k rows|around 50,000 rows}. {Sending via|I'll send through|Pushing it via} {cloud_service} since {email has a size limit|email won't take it|the email cap is too low}.",
     ],
     "policy_violation": [
-        "Here's the admin password for the {system} system: {password}. Don't share it but you'll need it to run the {task}.",
-        "I disabled the {security_control} on my machine because it was blocking {software}. Can you do the same?",
-        "Just use my credentials to log into {system} — username: {username}, password: {password}. I'll be out of office.",
-        "I installed {software} on my workstation without going through IT. It's way faster for {task} than the approved tool.",
-        "I shared the {system} API key in the {channel} channel. Everyone on the team needs access for the {task} sprint.",
-        "The {security_control} keeps flagging our scripts as malicious. I added an exception for our entire department.",
-        "FYI I set up a {software} instance on my personal AWS account for the {task} project. Faster than waiting for IT approval.",
-        "I gave {name} access to the {system} production database. They needed it urgently and the approval process takes too long.",
+        "Here's the admin password for the {system} system: {password}. {Don't share it|Keep it to yourself|Please don't pass it around} but you'll need it to run the {task}.",
+        "{I disabled|I turned off|I switched off} the {security_control} on my machine because it was blocking {software}. {Can you do the same|You should do the same|Worth doing on yours too}?",
+        "{Just use my credentials|Use my login|Just log in with my account} to {system} — username: {username}, password: {password}. {I'll be out of office|I'm out this week|I won't be around}.",
+        "{I installed|I went ahead and installed|I put} {software} on my workstation without going through IT. {It's way faster for|Much faster for|Beats the approved tool for} {task} {than the approved tool|than what we're supposed to use|by a mile}.",
+        "{I shared the|I posted the|I dropped the} {system} API key in the {channel} channel. {Everyone on the team needs access|The whole team needs it|Everyone needs it} for the {task} sprint.",
+        "The {security_control} keeps flagging our scripts as malicious. {I added an exception for our entire department|I whitelisted the whole department|I just exempted the entire department}.",
+        "{FYI I set up|Heads up — I spun up|Just so you know, I provisioned} a {software} instance on my personal AWS account for the {task} project. {Faster than waiting for IT approval|Beats waiting on IT|IT approval was taking forever}.",
+        "{I gave|I granted|I went ahead and gave} {name} access to the {system} production database. {They needed it urgently|It was urgent|They were blocked} and the approval process takes too long.",
     ],
     "phishing_indicators": [
-        "URGENT: Your {system} account will be deactivated in 24 hours. Click here to verify: {suspicious_url}",
-        "ACTION REQUIRED: Unusual sign-in detected on your account. Confirm your identity immediately at {suspicious_url}",
-        "Hi {name}, I'm the new IT admin. I need you to reset your {system} password using this secure link: {suspicious_url}",
-        "IMPORTANT: Your {doc_type} access expires today. Renew now to avoid losing all your files: {suspicious_url}",
-        "Dear employee, payroll has been updated. Review your new compensation package here: {suspicious_url}",
-        "Your {system} storage is 98% full. Click to upgrade immediately or risk losing data: {suspicious_url}",
-        "From: CEO Office — Please purchase {amount} in gift cards for a client meeting today. This is urgent and confidential.",
-        "Invoice #{invoice_num} is past due. Please process payment immediately to avoid service interruption: {suspicious_url}",
+        "{URGENT|ATTENTION|TIME-SENSITIVE}: Your {system} account will be {deactivated|suspended|locked} in 24 hours. {Click here to verify|Verify now|Confirm your access immediately}: {suspicious_url}",
+        "{ACTION REQUIRED|IMMEDIATE ACTION NEEDED|RESPONSE REQUIRED}: Unusual sign-in detected on your account. {Confirm your identity immediately at|Verify your identity right away at|Click here to confirm it was you}: {suspicious_url}",
+        "Hi {name}, {I'm the new IT admin|this is the new IT admin|I just joined as IT admin}. {I need you to reset|Please reset|You'll need to reset} your {system} password using this {secure link|verification link|password link}: {suspicious_url}",
+        "{IMPORTANT|URGENT|CRITICAL}: Your {doc_type} access expires today. {Renew now to avoid losing all your files|Click here to renew or lose access|Verify now to keep your files}: {suspicious_url}",
+        "{Dear employee|Dear team member|Hello employee}, payroll has been updated. {Review your new compensation package here|Click here to view your new compensation|Verify your updated compensation details}: {suspicious_url}",
+        "Your {system} storage is 98% full. {Click to upgrade immediately|Click here to upgrade now|Upgrade now} or {risk losing data|lose your data|files will be deleted}: {suspicious_url}",
+        "{From: CEO Office|From the CEO|CEO here} — {Please purchase|Need you to purchase|Buy} {amount} in gift cards for a client meeting today. {This is urgent and confidential|Urgent and please keep confidential|Time-sensitive — keep this between us}.",
+        "Invoice #{invoice_num} is past due. {Please process payment immediately|Pay now|Click here to pay immediately} to avoid service interruption: {suspicious_url}",
     ],
     "hr_personnel": [
-        "I wanted to flag a concern about {name}'s behavior in yesterday's meeting. They were dismissive of the entire {team} team's input.",
-        "I'm considering putting in my two weeks. The workload since the {event} has been unsustainable and management isn't listening.",
-        "Can we schedule a private meeting? I need to discuss a situation with {name} that's affecting the whole {team} team's morale.",
-        "{name} has been consistently missing deadlines on the {project} project. I think we need to have a formal conversation.",
-        "I'd like to request a transfer to a different {team}. The current management style isn't aligned with my career goals.",
-        "There's been tension between {name} and the rest of the {team} team since the {event}. Productivity has dropped noticeably.",
-        "I have concerns about how the {event} situation was handled. Several people on {team} team are updating their resumes.",
-        "Can HR review the overtime records for {team} team? We've been working 60+ hour weeks since {event} with no additional support.",
+        "{I wanted to flag|I need to raise|I'd like to flag} a concern about {name}'s behavior in yesterday's meeting. {They were dismissive of|They shut down|They talked over} the entire {team} team's input.",
+        "{I'm considering putting in my two weeks|I'm thinking about resigning|I may put in my two-week notice}. {The workload|The hours|The pace} since the {event} {has been unsustainable|is unsustainable|has become unsustainable} and management isn't listening.",
+        "{Can we schedule a private meeting|Could we meet privately|Can we talk one-on-one}? {I need to discuss|I want to raise|There's} a situation with {name} that's {affecting|hurting|tanking} the whole {team} team's morale.",
+        "{name} has been {consistently missing deadlines|repeatedly missing deadlines|chronically late on deliverables} on the {project} project. {I think we need to have a formal conversation|We need a formal conversation|This needs a formal HR discussion}.",
+        "{I'd like to request a transfer|I'd like to put in for a transfer|Requesting a transfer} to a different {team}. {The current management style isn't aligned with my career goals|Management style here doesn't fit my career path|Current leadership isn't a fit for where I want to go}.",
+        "{There's been tension|Things have been tense|Friction has been growing} between {name} and the rest of the {team} team since the {event}. {Productivity has dropped noticeably|Output is down significantly|We're seeing a real productivity hit}.",
+        "{I have concerns|I'm worried|I want to raise concerns} about how the {event} situation was handled. {Several people on|Multiple people on|Folks on} {team} team are {updating their resumes|job hunting|quietly looking}.",
+        "{Can HR review|Could HR look at|Please have HR audit} the overtime records for {team} team? {We've been working 60+ hour weeks|We've been pulling 60-hour weeks|It's been 60+ hours a week} since {event} with no additional support.",
     ],
     "financial_irregularity": [
-        "I need to expense {amount} for the {event} dinner. I know it's over the limit but the client expected a certain level of hospitality.",
-        "Can we process this invoice from {vendor}? I know they're not an approved vendor but they gave us a 40% discount on {task} services.",
-        "The {project} project is {amount} over budget. I've been splitting charges across multiple cost centers to avoid triggering the review.",
-        "I approved {name}'s travel to {location} — they booked first class but said it was the only option. Total was {amount}.",
-        "{vendor} is offering us a personal referral bonus if we sign the contract this quarter. Should we factor that into the {project} decision?",
-        "Please reimburse {amount} to my personal card. I fronted the cost for {task} supplies because the PO process was taking too long.",
-        "I've been invoicing {vendor} monthly but the actual deliverables are quarterly. It smooths out our {project} budget reporting.",
-        "Can we reclassify the {amount} {task} expense as training? It's easier to get approval under the education budget.",
+        "{I need to expense|I'm expensing|Putting through} {amount} for the {event} dinner. {I know it's over the limit|Yes it's over the per-head limit|It's over policy} but the client expected a certain level of hospitality.",
+        "{Can we process|Could we push through|Mind processing} this invoice from {vendor}? {I know they're not an approved vendor|They aren't on the approved vendor list|They aren't pre-approved} but they gave us a 40% discount on {task} services.",
+        "The {project} project is {amount} over budget. {I've been splitting charges|I've been spreading the charges|I've been allocating costs} across multiple cost centers to {avoid triggering the review|stay under the review threshold|keep it off finance's radar}.",
+        "{I approved|I signed off on|I greenlit} {name}'s travel to {location} — {they booked first class|they flew first class|first class} but said it was the only option. Total was {amount}.",
+        "{vendor} is offering us a personal referral bonus if we sign the contract this quarter. {Should we factor that into|Want to factor that into|Worth weighing that in} the {project} decision?",
+        "{Please reimburse|Need reimbursement of|Reimburse me} {amount} to my personal card. {I fronted the cost for|I covered|I paid out of pocket for} {task} supplies because the PO process was taking too long.",
+        "{I've been invoicing|We've been invoicing|I've been billing} {vendor} monthly but the actual deliverables are quarterly. {It smooths out|It evens out|It cleans up} our {project} budget {reporting|numbers|reporting cycle}.",
+        "{Can we reclassify|Could we reclassify|Mind reclassifying} the {amount} {task} expense as training? {It's easier to get approval under the education budget|Education budget approvals are faster|Training approvals go through quicker}.",
     ],
     "normal_business": [
-        "Hi team, the {project} sprint planning meeting is scheduled for {day} at {time}. Please review the backlog beforehand.",
-        "Attached are the meeting notes from today's {project} standup. Action items are highlighted in yellow.",
-        "Please review the {doc_type} I shared in the {channel} channel. Need feedback by {day} so we can finalize before {event}.",
-        "FYI: {name} will be out next week for PTO. {name2} is covering their {task} responsibilities.",
-        "Sharing the {project} Q3 status report. All metrics are green except {task} which needs additional resources.",
-        "Hi {name}, welcome to the {team} team! Your onboarding schedule is attached. First day is {day}.",
+        "{Hi team|Hey team|Team}, the {project} {sprint planning meeting|sprint kickoff|planning session} is {scheduled for|set for|happening} {day} at {time}. {Please review the backlog beforehand|Take a look at the backlog ahead of time|Check the backlog so we're ready}.",
+        "{Attached are|Sharing|Here are} the meeting notes from {today's|this morning's|our} {project} {standup|sync|daily}. {Action items are highlighted in yellow|Action items in yellow|Yellow highlights are the action items}.",
+        "{Please review|Take a look at|Could you review} the {doc_type} I shared in the {channel} channel. {Need feedback by|Feedback by|Comments by} {day} so we can finalize before {event}.",
+        "{FYI|Heads up|Just a note}: {name} will be out next week for PTO. {name2} is {covering their|picking up the|handling} {task} {responsibilities while they're out|work in the meantime|coverage until they return}.",
+        "{Sharing|Posting|Here's} the {project} Q3 status report. {All metrics are green|All green|Everything's green} except {task} which {needs additional resources|needs more resources|is under-resourced}.",
+        "Hi {name}, {welcome to|welcome aboard|glad to have you on} the {team} team! {Your onboarding schedule is attached|Onboarding schedule attached|See attached for your onboarding plan}. First day is {day}.",
     ],
 }
 
@@ -299,14 +299,21 @@ def generate_attachments(category):
     return True, n_attachments, "|".join(filenames), round(total_size_mb, 4)
 
 def fill_template(template):
-    """Replace placeholders with random values."""
+    """Replace placeholders with random values.
+    Two patterns supported:
+      {key}                — looks up FILL[key], picks one
+      {opt1|opt2|opt3}     — picks one of the literal options verbatim
+    """
     import re
     def replacer(match):
-        key = match.group(1)
-        if key in FILL:
-            return random.choice(FILL[key])
+        token = match.group(1)
+        if "|" in token:
+            return random.choice(token.split("|"))
+        if token in FILL:
+            return random.choice(FILL[token])
         return match.group(0)
-    return re.sub(r'\{(\w+)\}', replacer, template)
+    # Match any {...} content that doesn't contain { or }
+    return re.sub(r'\{([^{}]+)\}', replacer, template)
 
 def generate_emails(n=5000):
     """Generate n synthetic emails with rebalanced distribution: ~30% normal, ~70% risk.
