@@ -46,8 +46,11 @@
 
 # COMMAND ----------
 
-dbutils.widgets.text("database", "security_app_integration", "Database")
+import os
+import re
 from datetime import datetime
+
+dbutils.widgets.text("database", "security_app_integration", "Database")
 _user_email = spark.sql("SELECT current_user()").first()[0]
 _name_parts = _user_email.split('@')[0].replace('_', '.').split('.')
 _initials = (_name_parts[0][0] + _name_parts[-1][0]).lower() if len(_name_parts) >= 2 else _user_email[:2].lower()
@@ -60,8 +63,6 @@ SUFFIX_TAG = f"_{SUFFIX}" if SUFFIX else ""
 ARTIFACT_PATH = f"/dbfs/tmp/workshops/{DATABASE}"
 LANDING_PATH = f"/dbfs/tmp/workshops/{DATABASE}/landing_zone"
 
-import os
-import re
 _user = spark.sql("SELECT current_user()").first()[0]
 USER_ID = re.sub(r'[^a-zA-Z0-9]', '_', _user.split('@')[0])
 os.makedirs(f"/dbfs/tmp/workshops/{DATABASE}/{USER_ID}/checkpoints", exist_ok=True)
@@ -196,7 +197,6 @@ def log_pipeline_health(stage, event_type, df, start_time, status="success"):
     )
     print(f"  Health logged: {stage}/{event_type} — {row_count} rows, "
           f"{processing_seconds:.1f}s, null_rate={null_rate:.4f}")
-
 
 # COMMAND ----------
 

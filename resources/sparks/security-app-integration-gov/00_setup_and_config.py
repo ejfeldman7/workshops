@@ -74,12 +74,13 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
+import os
+
 DATABASE = dbutils.widgets.get("database")
 
 spark.sql(f"CREATE DATABASE IF NOT EXISTS {DATABASE}")
 spark.sql(f"USE {DATABASE}")
 
-import os
 ARTIFACT_PATH = f"/dbfs/tmp/workshops/{DATABASE}"
 LANDING_PATH = f"/dbfs/tmp/workshops/{DATABASE}/landing_zone"
 os.makedirs(ARTIFACT_PATH, exist_ok=True)
@@ -349,6 +350,8 @@ def generate_signin_events(n=5000):
 
 # COMMAND ----------
 
+from collections import Counter
+
 email_events = generate_email_events(5000)
 signin_events = generate_signin_events(5000)
 all_events = email_events + signin_events
@@ -356,7 +359,6 @@ random.shuffle(all_events)
 
 print(f"Generated {len(email_events)} email events and {len(signin_events)} sign-in events")
 
-from collections import Counter
 email_cats = Counter(e["_synthetic_category"] for e in email_events)
 print("\nEmail categories:")
 for cat, count in email_cats.most_common():
