@@ -30,8 +30,9 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-dbutils.widgets.text("database", "login_anomaly", "Database")
 from datetime import datetime
+
+dbutils.widgets.text("database", "login_anomaly", "Database")
 _user_email = spark.sql("SELECT current_user()").first()[0]
 _name_parts = _user_email.split('@')[0].replace('_', '.').split('.')
 _initials = (_name_parts[0][0] + _name_parts[-1][0]).lower() if len(_name_parts) >= 2 else _user_email[:2].lower()

@@ -53,8 +53,9 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-dbutils.widgets.text("database", "login_anomaly", "Database")
 from datetime import datetime
+
+dbutils.widgets.text("database", "login_anomaly", "Database")
 _user_email = spark.sql("SELECT current_user()").first()[0]
 _name_parts = _user_email.split('@')[0].replace('_', '.').split('.')
 _initials = (_name_parts[0][0] + _name_parts[-1][0]).lower() if len(_name_parts) >= 2 else _user_email[:2].lower()
@@ -128,11 +129,12 @@ print("✓ Temporal features added")
 # COMMAND ----------
 
 # Previous login location for geo-velocity
+from pyspark.sql.types import DoubleType
+
 df_feat = df_feat.withColumn("prev_lat", F.lag("latitude").over(user_window)) \
                  .withColumn("prev_lon", F.lag("longitude").over(user_window))
 
 # Haversine distance UDF
-from pyspark.sql.types import DoubleType
 
 @F.udf(DoubleType())
 def haversine(lat1, lon1, lat2, lon2):
@@ -319,13 +321,14 @@ display(fig)
 
 # COMMAND ----------
 
+import os
+import re
+
 df_final.write.format("delta").mode("overwrite").saveAsTable(f"{DATABASE}.signins_features{SUFFIX_TAG}")
 print(f"✓ Saved feature table: {DATABASE}.signins_features{SUFFIX_TAG}")
 print(f"  Rows: {df_final.count()}")
 
 # Also save as parquet for pandas-based modeling
-import os
-import re
 _user = spark.sql("SELECT current_user()").first()[0]
 USER_ID = re.sub(r'[^a-zA-Z0-9]', '_', _user.split('@')[0])
 artifact_path = f"/dbfs/tmp/workshops/{DATABASE}/{USER_ID}"

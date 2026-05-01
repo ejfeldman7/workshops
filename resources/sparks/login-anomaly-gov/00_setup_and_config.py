@@ -71,12 +71,13 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
+import os
+
 DATABASE = dbutils.widgets.get("database")
 
 spark.sql(f"CREATE DATABASE IF NOT EXISTS {DATABASE}")
 spark.sql(f"USE {DATABASE}")
 
-import os
 ARTIFACT_PATH = f"/dbfs/tmp/workshops/{DATABASE}"
 os.makedirs(ARTIFACT_PATH, exist_ok=True)
 print(f"Using database: {DATABASE} (Hive metastore)")
@@ -269,6 +270,39 @@ def generate_new_device_location(user, ts):
         "_anomaly_type": "new_device_location",
     }
 
+def generate_credential_stuffing_burst(start_ts, n_attempts=50):
+    """Coordinated burst: ~50 login attempts in a 5-minute window from one IP,
+    hitting different users. Each event individually looks like brute force,
+    but the temporal clustering is what makes it a system-level anomaly.
+    """
+    burst_ip = f"185.{random.randint(1,254)}.{random.randint(1,254)}.{random.randint(1,254)}"
+    burst_device = random.choice(ANOMALOUS_DEVICES)
+    burst_loc = random.choice(list(ANOMALOUS_LOCATIONS.keys()))
+    lat, lon = ANOMALOUS_LOCATIONS[burst_loc]
+    targets = random.sample(USERS, min(n_attempts, len(USERS)))
+
+    events = []
+    for i, user in enumerate(targets):
+        # Spread attempts across a ~5-minute window
+        ts = start_ts + timedelta(seconds=random.randint(0, 300))
+        events.append({
+            "login_id": str(uuid.uuid4()),
+            "user_id": user,
+            "timestamp": ts,
+            "location_name": burst_loc,
+            "latitude": lat + random.gauss(0, 0.001),
+            "longitude": lon + random.gauss(0, 0.001),
+            "device": burst_device,
+            "ip_address": burst_ip,
+            # Most attempts fail; ~10% succeed (the credential hits)
+            "success": random.random() < 0.1,
+            "failed_attempts_before": random.randint(3, 15),
+            "session_duration_min": float(max(1, random.gauss(3, 2))),
+            "mfa_used": False,
+            "_anomaly_type": "credential_stuffing",
+        })
+    return events
+
 # --- Generate dataset ---
 rows = []
 base_date = datetime(2025, 1, 1)
@@ -312,6 +346,22 @@ for _ in range(int(len(rows) * 0.022)):
     ts = base_date + timedelta(days=day, hours=random.randint(8, 22), minutes=random.randint(0, 59))
     rows.append(generate_new_device_location(user, ts))
 
+# Credential stuffing bursts: 12 coordinated attacks of ~50 attempts each.
+# These are temporally clustered (5-min windows), making them a system-level
+# anomaly that aggregate volume / failure-rate / distinct-IP metrics catch
+# clearly, even though individual events look similar to brute force.
+for _ in range(12):
+    day = random.randint(0, 89)
+    # Bias toward off-hours (stuffing campaigns commonly hit overnight)
+    hour = random.choices(
+        list(range(24)),
+        weights=[3]*6 + [1]*12 + [3]*6,  # heavier 0-5 and 18-23
+    )[0]
+    start_ts = base_date + timedelta(
+        days=day, hours=hour, minutes=random.randint(0, 55)
+    )
+    rows.extend(generate_credential_stuffing_burst(start_ts, n_attempts=50))
+
 random.shuffle(rows)
 
 df = spark.createDataFrame([Row(**r) for r in rows])
@@ -343,7 +393,9 @@ display(spark.sql(f"SELECT * FROM {table_name} LIMIT 10"))
 # MAGIC - **Libraries**: pyod installed
 # MAGIC - **Data**: ~40,000+ synthetic sign-in events in `signins_bronze` table
 # MAGIC   - ~90% normal logins
-# MAGIC   - ~10% anomalous (impossible travel, off-hours, brute force, new device+location)
+# MAGIC   - ~10% anomalous: impossible travel, off-hours, brute force, new device+location,
+# MAGIC     and credential-stuffing bursts (12 coordinated attacks of ~50 attempts each
+# MAGIC     in 5-minute windows — the system-level temporal anomaly used in notebook 08)
 # MAGIC
 # MAGIC **Next →** Open `01_data_exploration` to explore the sign-in data.
 

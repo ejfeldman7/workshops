@@ -55,8 +55,9 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-dbutils.widgets.text("database", "login_anomaly", "Database")
 from datetime import datetime
+
+dbutils.widgets.text("database", "login_anomaly", "Database")
 _user_email = spark.sql("SELECT current_user()").first()[0]
 _name_parts = _user_email.split('@')[0].replace('_', '.').split('.')
 _initials = (_name_parts[0][0] + _name_parts[-1][0]).lower() if len(_name_parts) >= 2 else _user_email[:2].lower()
@@ -81,6 +82,7 @@ import numpy as np
 
 import os
 import re
+
 _user = spark.sql("SELECT current_user()").first()[0]
 USER_ID = re.sub(r'[^a-zA-Z0-9]', '_', _user.split('@')[0])
 artifact_path = f"/dbfs/tmp/workshops/{DATABASE}/{USER_ID}"
