@@ -32,8 +32,9 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-dbutils.widgets.text("database", "nlp_email_risk", "Database")
 from datetime import datetime
+
+dbutils.widgets.text("database", "nlp_email_risk", "Database")
 _user_email = spark.sql("SELECT current_user()").first()[0]
 _name_parts = _user_email.split('@')[0].replace('_', '.').split('.')
 _initials = (_name_parts[0][0] + _name_parts[-1][0]).lower() if len(_name_parts) >= 2 else _user_email[:2].lower()
@@ -331,6 +332,8 @@ display(spark.createDataFrame(top_terms, ["term", "mean_tfidf_score"]))
 
 # COMMAND ----------
 
+import os
+import re
 import pickle
 
 # Ensure the volume exists
@@ -340,8 +343,6 @@ df_clean.write.format("delta").mode("overwrite").saveAsTable(f"{DATABASE}.emails
 print(f"✓ Saved cleaned emails to {DATABASE}.emails_cleaned{SUFFIX_TAG}")
 
 # Save TF-IDF artifacts to Volume for cross-notebook use
-import os
-import re
 _user = spark.sql("SELECT current_user()").first()[0]
 USER_ID = re.sub(r'[^a-zA-Z0-9]', '_', _user.split('@')[0])
 artifact_path = f"/dbfs/tmp/workshops/{DATABASE}/{USER_ID}"

@@ -48,9 +48,10 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
+from datetime import datetime
+
 dbutils.widgets.text("database", "nlp_email_risk", "Database")
 dbutils.widgets.text("best_k", "6", "Number of Topics (match NMF)")
-from datetime import datetime
 _user_email = spark.sql("SELECT current_user()").first()[0]
 _name_parts = _user_email.split('@')[0].replace('_', '.').split('.')
 _initials = (_name_parts[0][0] + _name_parts[-1][0]).lower() if len(_name_parts) >= 2 else _user_email[:2].lower()
@@ -76,6 +77,7 @@ import numpy as np
 
 import os
 import re
+
 _user = spark.sql("SELECT current_user()").first()[0]
 USER_ID = re.sub(r'[^a-zA-Z0-9]', '_', _user.split('@')[0])
 artifact_path = f"/dbfs/tmp/workshops/{DATABASE}/{USER_ID}"
@@ -106,14 +108,14 @@ print(f"TF-IDF matrix: {tfidf_matrix.shape}")
 
 # COMMAND ----------
 
+import time
+import os
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 import mlflow
 import mlflow.sklearn
 # Register sklearn integration so DBR's MLflow autologging shim doesn't KeyError on fit
 mlflow.sklearn.autolog(disable=True)
-import time
-import os
 
 # Build count matrix with same params as TF-IDF
 count_vec = CountVectorizer(
@@ -224,13 +226,14 @@ for topic_idx in range(BEST_K):
 # COMMAND ----------
 
 # Normalize LDA weights to probabilities
+from scipy.stats import entropy
+
 lda_probs = lda_W / lda_W.sum(axis=1, keepdims=True)
 
 pdf["lda_dominant_topic"] = lda_probs.argmax(axis=1)
 pdf["lda_max_prob"] = lda_probs.max(axis=1)
 
 # Entropy: high entropy = email spans many topics
-from scipy.stats import entropy
 pdf["lda_entropy"] = [entropy(row) for row in lda_probs]
 
 for i in range(BEST_K):

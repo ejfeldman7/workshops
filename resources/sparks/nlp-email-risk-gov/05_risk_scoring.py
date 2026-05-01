@@ -48,9 +48,10 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
+from datetime import datetime
+
 dbutils.widgets.text("database", "nlp_email_risk", "Database")
 dbutils.widgets.text("best_k", "6", "Number of Topics")
-from datetime import datetime
 _user_email = spark.sql("SELECT current_user()").first()[0]
 _name_parts = _user_email.split('@')[0].replace('_', '.').split('.')
 _initials = (_name_parts[0][0] + _name_parts[-1][0]).lower() if len(_name_parts) >= 2 else _user_email[:2].lower()
@@ -71,6 +72,7 @@ import numpy as np
 
 import os
 import re
+
 _user = spark.sql("SELECT current_user()").first()[0]
 USER_ID = re.sub(r'[^a-zA-Z0-9]', '_', _user.split('@')[0])
 artifact_path = f"/dbfs/tmp/workshops/{DATABASE}/{USER_ID}"
@@ -275,13 +277,13 @@ for _, row in high_risk.iterrows():
 
 # COMMAND ----------
 
+from mlflow.models import infer_signature
+import os
 import mlflow
 import mlflow.pyfunc
 import mlflow.sklearn
 # Register sklearn integration so DBR's MLflow autologging shim doesn't KeyError on fit
 mlflow.sklearn.autolog(disable=True)
-from mlflow.models import infer_signature
-import os
 
 notebook_path = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get()
 mlflow.set_experiment(f"{os.path.dirname(notebook_path)}/nlp_email_risk_scoring")

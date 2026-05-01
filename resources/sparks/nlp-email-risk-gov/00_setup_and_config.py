@@ -71,12 +71,13 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
+import os
+
 DATABASE = dbutils.widgets.get("database")
 
 spark.sql(f"CREATE DATABASE IF NOT EXISTS {DATABASE}")
 spark.sql(f"USE {DATABASE}")
 
-import os
 ARTIFACT_PATH = f"/dbfs/tmp/workshops/{DATABASE}"
 os.makedirs(ARTIFACT_PATH, exist_ok=True)
 print(f"Using database: {DATABASE} (Hive metastore)")
