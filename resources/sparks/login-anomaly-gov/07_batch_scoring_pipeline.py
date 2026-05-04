@@ -131,17 +131,22 @@ print(f"Loaded model artifacts. Features: {MODEL_FEATURES}")
 
 # COMMAND ----------
 
+import sys
+import os
+
+# Clear stale mlflow module state BEFORE importing mlflow. If mlflow was loaded
+# by a previous notebook run on this cluster, leftover sys.modules entries can
+# cause two different mlflow.models module objects to coexist — which makes
+# set_model() set __mlflow_model__ on one copy while MLflow's loader checks the
+# other. Order matters: clear first, import second.
+mlflow_keys = [k for k in sys.modules if k == 'mlflow' or k.startswith('mlflow.')]
+for k in mlflow_keys:
+    del sys.modules[k]
+
 import mlflow
 import mlflow.pyfunc
 import mlflow.sklearn
 from mlflow.models import infer_signature
-import sys
-import os
-
-# Clear stale mlflow module state if present (prevents circular import error)
-mlflow_keys = [k for k in sys.modules if k == 'mlflow' or k.startswith('mlflow.')]
-for k in mlflow_keys:
-    del sys.modules[k]
 
 # Register sklearn integration so DBR's MLflow autologging shim doesn't KeyError on fit_predict
 mlflow.sklearn.autolog(disable=True)
@@ -149,9 +154,11 @@ mlflow.sklearn.autolog(disable=True)
 notebook_path = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get()
 mlflow.set_experiment(f"{os.path.dirname(notebook_path)}/login_anomaly_pipeline")
 
+# Composite model class. Heavy imports (numpy, pandas, shap, sklearn, pyod)
+# are deferred into method bodies — keeps the class lightweight at registration
+# time and only loads what's needed when the model is actually invoked.
 class CompositeAnomalyDetector(mlflow.pyfunc.PythonModel):
-    """
-    Composite anomaly detection combining global IForest, PyOD ECOD, and per-user scoring.
+    """Composite anomaly detection combining global IForest, PyOD ECOD, and per-user scoring.
 
     Input: DataFrame with feature columns + user_id
     Output: DataFrame with composite risk_score, risk_tier, component scores, and SHAP top features
@@ -207,7 +214,9 @@ class CompositeAnomalyDetector(mlflow.pyfunc.PythonModel):
 
     def predict(self, context, model_input):
         import numpy as np
+        import pandas as pd
         import shap
+        from sklearn.ensemble import IsolationForest as IF
         from sklearn.preprocessing import MinMaxScaler
         from pyod.models.ecod import ECOD
 
@@ -228,8 +237,6 @@ class CompositeAnomalyDetector(mlflow.pyfunc.PythonModel):
 
         # --- Layer 3: Per-user scoring ---
         # Train a mini IForest per user and score against their personal baseline
-        from sklearn.ensemble import IsolationForest as IF
-
         per_user_signal = np.zeros(len(model_input))
         user_col = model_input.get("user_id", None)
 
@@ -320,14 +327,18 @@ with open(f"{artifact_path}/known_locations.pkl", "wb") as f:
 with open(f"{artifact_path}/known_devices.pkl", "wb") as f:
     pickle.dump(known_devices_list, f)
 
-# Define model signature and input example
+# Define model signature and input example.
+# Note: numeric columns are floats — integer-typed columns can't represent
+# missing values at inference, which trips schema enforcement. Declaring them
+# as float now makes the inferred schema double from the start.
 input_example = pd.DataFrame({
     "user_id": ["user001@snc-internal.example.com"],
-    "hour": [14], "day_of_week": [3], "latitude": [39.53], "longitude": [-119.75],
-    "failed_attempts_before": [0], "mfa_used": [True], "session_duration_min": [45.0],
+    "hour": [14.0], "day_of_week": [3.0],
+    "latitude": [39.53], "longitude": [-119.75],
+    "failed_attempts_before": [0.0], "mfa_used": [True], "session_duration_min": [45.0],
     "device": ["Windows_Laptop_Corp"], "location_name": ["HQ_Sparks_NV"],
     "minutes_since_last_login": [120.0], "distance_from_prev_km": [0.0],
-    "geo_velocity_kmh": [0.0], "logins_last_hour": [1],
+    "geo_velocity_kmh": [0.0], "logins_last_hour": [1.0],
 })
 output_example = pd.DataFrame({
     "risk_score": [0.1], "risk_tier": ["Low"], "is_anomaly": [0],
@@ -355,7 +366,7 @@ with mlflow.start_run(run_name="composite_anomaly_detector_v1") as run:
     }
 
     mlflow.pyfunc.log_model(
-        artifact_path="model",
+        name="model",
         python_model=CompositeAnomalyDetector(),
         artifacts=artifacts,
         signature=signature,
@@ -387,6 +398,15 @@ sample = pdf.sample(20, random_state=42)
 
 # Reconstruct mfa_used from mfa_numeric (model expects raw input, not engineered features)
 sample["mfa_used"] = sample["mfa_numeric"].astype(bool)
+
+# Cast integer-typed numeric columns to float64 to match the model signature.
+# (Signature columns are declared `double` so missing values at inference don't
+# trip schema enforcement — but bronze data has them as int64, and MLflow
+# refuses int → float implicit conversion on enforcement.)
+_float_cols = ["hour", "day_of_week", "failed_attempts_before", "logins_last_hour"]
+for _c in _float_cols:
+    if _c in sample.columns:
+        sample[_c] = sample[_c].astype("float64")
 
 # Select only the columns the model signature expects
 model_input_cols = signature.inputs.input_names()
@@ -451,6 +471,10 @@ for _, row in sample_result.iterrows():
 # MAGIC
 # MAGIC # 4. Score batch — composite model handles all three layers + SHAP
 # MAGIC pdf_new = new_events.toPandas()
+# MAGIC # Match the signature's float typing for numeric-int columns
+# MAGIC for c in ["hour", "day_of_week", "failed_attempts_before", "logins_last_hour"]:
+# MAGIC     if c in pdf_new.columns:
+# MAGIC         pdf_new[c] = pdf_new[c].astype("float64")
 # MAGIC predictions = model.predict(pdf_new)
 # MAGIC
 # MAGIC # 5. Write scores with component breakdowns and explanations
