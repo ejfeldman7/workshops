@@ -1,7 +1,6 @@
-
 # Workshops — Onsite
 
-Three hands-on workshops for planned future on-sites. Each workshop is a sequence of numbered Databricks notebooks that build on each other, generating synthetic data and walking through a complete pipeline.
+Three hands-on workshops. Each workshop is a sequence of numbered Databricks notebooks that build on each other, generating synthetic data and walking through a complete pipeline.
 
 Workshops 1 & 2 are Data Science focused (~90 min each). Workshop 3 is Data Engineering focused (~90 min), covering pipeline architecture and application integration. Workshop 3 is fully self-contained and does not depend on Workshops 1 & 2, so it works for a separate audience.
 
@@ -21,7 +20,7 @@ Unsupervised NLP pipeline that discovers risk categories in email data and produ
 | 03 | `lda_comparison` | 10 min | LDA with matching K for comparison. Soft probabilistic topic assignment, entropy analysis for multi-topic emails, pyLDAvis interactive visualization, NMF vs LDA cross-tabulation |
 | 04 | `embeddings_clustering` | 10 min | Sentence-transformer embeddings (all-MiniLM-L6-v2), UMAP dimensionality reduction, HDBSCAN clustering (`min_cluster_size=80, min_samples=15`), 3-panel UMAP comparison (HDBSCAN vs NMF vs ground truth), noise point analysis |
 | 05 | `risk_scoring` | 15 min | Composite risk score combining 5 signals (NMF topic 30%, embedding anomaly 30%, attachment/size 15%, temporal 15%, LDA entropy 10%). MLflow model registration, batch inference pattern, risk tier assignment |
-| 06 | `educational_supervised` | 5 min | **Educational only** — TF-IDF+XGBoost, DistilBERT fine-tuning (code shown but not run), zero-shot classification demo. Assume no labeled data so this is future reference for if they do. |
+| 06 | `educational_supervised` | 5 min | **Educational only** — TF-IDF+XGBoost, DistilBERT fine-tuning (code shown but not run), zero-shot classification demo. Future reference for when labeled data becomes available. |
 
 ### Key Technical Choices
 
@@ -29,6 +28,7 @@ Unsupervised NLP pipeline that discovers risk categories in email data and produ
 - **No labeled data**: The entire actionable pipeline is unsupervised. Supervised approaches are educational only.
 - **Attachment/size as risk signal**: Data exfiltration emails tend to have large attachments (database dumps, code archives). This is a feature in the composite score.
 - **Batch inference only**: No Model Serving in Azure Gov Cloud. Scoring runs via scheduled notebook jobs.
+
 ### Synthetic Data
 
 The setup notebook generates emails across 6 categories with realistic distributions:
@@ -54,7 +54,7 @@ Multi-layered anomaly detection pipeline for sign-in logs, combining global mode
 
 | # | Notebook | Duration | What It Does |
 |---|----------|----------|-------------|
-| 00 | `setup_and_config` | 5 min | Creates database/schema, installs libraries, generates ~40K+ synthetic sign-in events with embedded anomalies (impossible travel, off-hours, brute force, new device+location) |
+| 00 | `setup_and_config` | 5 min | Creates database/schema, installs libraries, generates ~40K+ synthetic sign-in events with embedded anomalies (impossible travel, off-hours, brute force, new device+location, credential-stuffing bursts) |
 | 01 | `data_exploration` | 10 min | Temporal heatmaps (hour x day-of-week), geographic scatter plots, device/MFA analysis, per-user behavior profiles, failed attempt distributions |
 | 02 | `feature_engineering` | 10 min | Geo-velocity calculation (distance/time between consecutive logins), cyclical hour encoding, session duration z-scores, new device/IP flags, login burst detection |
 | 03 | `isolation_forest` | 15 min | Global Isolation Forest with contamination sweep (2%–10%), score distributions, feature importance approximation, detection rate validation by anomaly type |
@@ -62,6 +62,7 @@ Multi-layered anomaly detection pipeline for sign-in logs, combining global mode
 | 05 | `per_user_models` | 15 min | Per-user Isolation Forest via `applyInPandas` — trains one model per user in parallel. SHAP explainability (TreeExplainer) showing which features drove each anomaly. Scaled SHAP across all users with top-3 feature output per login. |
 | 06 | `evaluation_thresholds` | 10 min | Risk tier assignment (Critical/High/Medium/Low), precision-recall-F1 vs threshold curves, alert volume analysis (alerts/day vs SOC capacity), analyst feedback table creation |
 | 07 | `batch_scoring_pipeline` | 15 min | Composite MLflow PyFunc model combining all three layers: global IForest (35%), PyOD ECOD (30%), per-user IForest (35%). Includes SHAP top-2 features per prediction. Model registration, batch inference test, production scheduling pattern, SQL dashboard queries. |
+| 08 | `system_temporal_anomaly` *(bonus, ~10 min)* | 10 min | Complementary lens: aggregate to 5-min buckets, run STL decomposition + rolling z-score on volume / distinct-IP / failure-rate / avg-failed-attempts, flag bucket-level anomalies. Catches credential-stuffing bursts that per-event scoring barely separates from normal. Output joinable to bronze for triage. |
 
 ### Key Technical Choices
 
@@ -70,6 +71,7 @@ Multi-layered anomaly detection pipeline for sign-in logs, combining global mode
 - **SHAP explainability**: Analysts see "flagged because geo_velocity was 15x above this user's norm" instead of "anomaly score: -0.12". Top-2 SHAP features are included in the batch scoring output.
 - **Composite scoring in production**: The final MLflow model wraps all three layers so production deployment is a single `model.predict()` call.
 - **Geo-velocity is the strongest signal**: If a user logs in from New York and 30 minutes later from Moscow, no airplane covers that distance. The feature engineering notebook includes a haversine distance calculation and km/hr velocity.
+- **Two complementary lenses (notebook 08)**: notebooks 03–07 ask _"is this user behaving anomalously?"_ — the bonus notebook 08 asks _"is this 5-minute window behaving anomalously across the whole system?"_ Coordinated attacks (credential stuffing, mass brute force) look unremarkable per-event but stand out clearly at the bucket level. In production you'd alert on the union: high-risk events plus everything inside a high/critical bucket.
 
 ### Synthetic Data
 
@@ -82,12 +84,13 @@ The setup notebook generates sign-in events for 100 users across 90 days:
 | Impossible travel | ~2% | Moscow/Shanghai/Lagos logins within minutes of domestic login |
 | Brute force | ~2% | 5-20 failed attempts, anomalous devices, no MFA |
 | New device + location | ~2% | Never-seen device AND foreign location simultaneously |
+| Credential-stuffing burst | 12 bursts × ~50 events | Coordinated 5-min windows: one IP, one anomalous device, ~50 different victim users, off-hours-biased. Used in bonus notebook 08 — system-level lens catches them clearly while per-event scoring barely separates them from normal. |
 
 ---
 
 ## Workshop 3: Security Data Pipeline & Application Integration (`security-app-integration/`)
 
-End-to-end data engineering pipeline for security events with external application integration via the Databricks SDK. Builds the infrastructure layer that connects Databricks to an external web application (Defensible Suite).
+End-to-end data engineering pipeline for security events with external application integration via the Databricks SDK. Builds the infrastructure layer that connects Databricks to an external web application.
 
 ### Notebooks
 
@@ -103,7 +106,7 @@ End-to-end data engineering pipeline for security events with external applicati
 
 - **Self-contained**: Generates its own data and doesn't depend on Workshops 1 & 2. The rule-based scorer produces the same output shape (risk score, tier, reasons) as the ML models, so the app integration code works with either.
 - **Delta tables as the contract**: The pipeline writes scored results and health metrics to Delta; the external app reads them via JDBC. Clean separation of concerns.
-- **Two query patterns, one workshop**: `spark.sql(...)` covers in-notebook analyst use; `databricks-sql-connector` JDBC against the all-purpose cluster covers external-app use (Defensible Suite). Same Delta tables underneath.
+- **Two query patterns, one workshop**: `spark.sql(...)` covers in-notebook analyst use; `databricks-sql-connector` JDBC against the all-purpose cluster covers external-app use. Same Delta tables underneath.
 - **No SQL Warehouses on Gov Cloud (yet)**: The Statement Execution API requires a SQL Warehouse, which Azure Gov Cloud doesn't offer today. The notebook uses the legacy `/sql/protocolv1/o/{workspace_id}/{cluster_id}` JDBC endpoint as a stopgap. When Evergreen lands, swap the `http_path` to point at a warehouse — same connector, same client code.
 - **No Databricks Apps required**: The architecture keeps the web app external. Databricks is the compute and data layer, not the hosting layer. This works in environments where Databricks Apps aren't available.
 - **Pipeline health as a first-class table**: Every stage writes metrics (row counts, null rates, processing time) to `pipeline_health`, enabling the monitoring notebook to detect ingestion anomalies independently of the security event scoring.
@@ -115,7 +118,7 @@ The setup notebook generates two event types:
 | Event Type | Count | Normal % | Anomaly Types |
 |-----------|-------|----------|---------------|
 | Email | 5,000 | ~90% | Data exfiltration (4%), phishing (3%), policy violation (3%) |
-| Sign-in | 5,000 | ~90% | Impossible travel (3%), brute force (2%), off-hours+unknown device (3%), failed bursts (3%) |
+| Sign-in | 5,000 | ~90% | Impossible travel (3%), brute force (2%), off-hours+unknown device (2%), failed bursts (3%) |
 
 ---
 
@@ -149,13 +152,13 @@ The `table_suffix` widget appears at the top of every notebook (except 00) with 
 
 ## Pre-Workshop Data Loading (Production)
 
-For the actual onsite, real data may replace the synthetic generators:
+For an onsite delivery, real data replaces the synthetic generators:
 
-| Data Source | Status | Action |
+| Data Source | Typical Status | Action |
 |-------------|--------|--------|
-| Email data | Not yet in Databricks | One-time bulk load to Azure Blob/ADLS before workshop |
-| RDS (Travel & HR) | Needs pipeline | JDBC connector for one-time load; Lakeflow Connect post-Evergreen |
-| Sign-in logs | Already in Databricks | Ready to use |
+| Email data | Often not yet in Databricks | One-time bulk load to Azure Blob / ADLS / S3 before workshop |
+| RDBMS (Travel, HR, etc.) | Needs pipeline | JDBC connector for one-time load; Lakeflow Connect once available |
+| Sign-in logs | Often already in Databricks | Ready to use |
 
 ## Reference Documentation
 
