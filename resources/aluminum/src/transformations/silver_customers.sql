@@ -39,7 +39,7 @@ WITH typed AS (
     contract_type,
     TRY_CAST(payment_terms_days AS INT)     AS payment_terms_days,
     TRY_CAST(LOWER(is_active) IN ('true','t','1','yes') AS BOOLEAN) AS is_active
-  FROM ball.bronze.dim_customers_raw
+  FROM ball_team_sandbox.ldelacer.dim_customers_raw
 ),
 deduped AS (
   -- Step 2: keep one row per customer_id. If the bronze layer has duplicates
