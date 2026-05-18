@@ -54,4 +54,4 @@ SELECT
       AS gross_revenue,
   TRY_CAST(quantity_units AS INT) * TRY_CAST(freight_cost_per_unit AS DECIMAL(10,4))
       AS total_freight_cost
-FROM STREAM(ball.bronze.raw_customer_orders);
+FROM STREAM(ball_team_sandbox.ldelacer.raw_customer_orders);
